@@ -25,6 +25,43 @@ const polylineMachine = createMachine(
         initial: "idle",
         states : {
             idle: {
+                on: {
+                    MOUSECLICK: {
+                        target: "drawing",
+                        actions: "createLine",
+                    },
+                },
+            }
+            ,
+            drawing: {
+                on: {
+                    MOUSEMOVE: {
+                        actions: "setLastPoint",
+                    },
+                    MOUSECLICK: [
+                        {
+                            guard: "pasPlein",
+                            actions: "addPoint",
+                        },
+                    ],
+                    BACKSPACE: [
+                        {
+                            guard: "plusDeDeuxPoints",
+                            actions: "removeLastPoint",
+                        },
+                    ],
+                    Enter: [
+                        {
+                            guard: "canSave",
+                            target: "idle",
+                            actions: "saveLine",
+                        },
+                    ],
+                    Escape: {
+                        target: "idle",
+                        actions: "abandon",
+                    },
+                },
             },
         },
     },
@@ -94,6 +131,10 @@ const polylineMachine = createMachine(
             plusDeDeuxPoints: (context, event) => {
                 // Deux coordonnées pour chaque point, plus le point provisoire
                 return polyline.points().length > 6;
+            },
+            canSave: (context, event) => {
+                const pointCount = polyline.points().length / 2;
+                return pointCount >= 2 && pointCount <= MAX_POINTS;
             },
         },
     }
